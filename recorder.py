@@ -4,19 +4,18 @@ import json
 import pygame
 
 class Ai(object):
-    def __init__(self, logFileName, replayFileName):
+    def __init__(self, logFileName, dataFile):
         self.logFileName = logFileName
-        self.replayFileName = replayFileName
         open(self.logFileName, "w").close()
         return
 
-    def handle(self, e):
+    def handle(self, e, state):
         if e.type == pygame.locals.MOUSEBUTTONUP:
             if e.button == 1:
-                self.logAction((1, e.pos[0], e.pos[1]))
+                self.logAction(state, (1, e.pos[0], e.pos[1]))
             if e.button == 4:
-                self.logAction((2, e.pos[0], e.pos[1]))
+                self.logAction(state, (2, e.pos[0], e.pos[1]))
 
-    def logAction(self, action):
+    def logAction(self, state, action):
         with open(self.logFileName, "a") as f:
-            f.write(json.dumps((time.time(), action)) + "\n")
+            f.write(json.dumps((time.time(), state, action)) + "\n")

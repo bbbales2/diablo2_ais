@@ -17,12 +17,12 @@ class Ai(object):
         open(self.logFileName, "w").close()
         return
 
-    def handle(self, e):
+    def handle(self, e, state):
         if e.type == pygame.locals.MOUSEBUTTONUP:
             if e.button == 1:
-                self.logAction((1, e.pos[0], e.pos[1]))
+                self.logAction(state, (1, e.pos[0], e.pos[1]))
             if e.button == 4:
-                self.logAction((2, e.pos[0], e.pos[1]))
+                self.logAction(state, (2, e.pos[0], e.pos[1]))
 
     def replay(self):
         if self.first:
@@ -48,13 +48,16 @@ class Ai(object):
         self.first = False
         return action
 
-    def go(self):
+    def go(self, state):
         if self.replaying:
-            return self.replay()
+            action = self.replay()
+            if action[0] != 0:
+                self.logAction(state, action)
+            return action 
 
         self.first = False
         return (0, 0, 0)
 
-    def logAction(self, action):
+    def logAction(self, state, action):
         with open(self.logFileName, "a") as f:
-            f.write(json.dumps((time.time(), action)) + "\n")
+            f.write(json.dumps((time.time(), state, action)) + "\n")
