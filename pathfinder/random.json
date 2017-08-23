@@ -1,0 +1,5 @@
+{
+    "replayFile" : "../diablo2_ais/replays/start.log",
+    "kerasModel" : "../diablo2_ais/pathfinders/first.keras",
+    "mix" : 0.2
+}
