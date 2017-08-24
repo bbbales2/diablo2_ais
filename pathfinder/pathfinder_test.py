@@ -1,12 +1,12 @@
 #%%
-from numpy import concatenate, pi, arctan2, array
+from numpy import concatenate, pi, arctan2, array, linalg
 import numpy
 import json
 import keras
 import os
 import matplotlib.pyplot as plt
 
-os.chdir('/home/bbales2/diablo2_pathfinder')
+os.chdir('/home/bbales2/diablo2_ais/pathfinder')
 
 Xs = []
 rewards = []
@@ -25,8 +25,15 @@ def process(filename):
     states = numpy.array(states)
     states -= states[0]
 
-    values = -numpy.linalg.norm(states - [0.0, 0.0], axis = 1)
+    v1 = linalg.norm(states - [0.0, 0.0], axis = 1)
+    v1[v1 > 20.0] = 20.0
+    values = -linalg.norm(states - [-200.0, 150.0], axis = 1) + v1
     rewards = values[1:] - values[:-1]
+    for i in range(len(rewards)):
+        for j in range(i + 1, min(len(rewards), i + 10)):
+            rewards[i] += 0.8 ** (j - i) * rewards[j]
+        #rewards[i] = min(50.0, rewards[i])
+
     states = states[:-1]
     actions = actions[:-1]
     X2 = numpy.zeros((len(actions), 8)).astype('int')
@@ -37,13 +44,16 @@ def process(filename):
 
     return X, rewards
 
-for filename in ["../diablo2_bot_manager/output/0.log", "../diablo2_bot_manager/output/1.log",
-                 "../diablo2_bot_manager/output1/0.log", "../diablo2_bot_manager/output1/1.log",
-                 "../diablo2_bot_manager/output2/0.log", "../diablo2_bot_manager/output2/1.log"]:
-    X, reward = process(filename)
+for r in ['1', '2', '3', '4', '5', '6']:
+    for i in range(60):
+        try:
+            filename = "../../diablo2_bot_manager/output{1}/{0}.log".format(i, r)
+            X, reward = process(filename)
 
-    Xs.append(X)
-    rewards.append(reward)
+            Xs.append(X)
+            rewards.append(reward)
+        except:
+            break
 
 X = concatenate(Xs, axis = 0)
 rewards = concatenate(rewards, axis = 0)
@@ -54,25 +64,27 @@ plt.axes().set_aspect('equal', 'datalim')
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation
-from keras import regularizers
+from keras import regularizers, losses
 
 model = Sequential([
-  Dense(25, input_shape=(10,), activity_regularizer = regularizers.l2(0.01)),
+  Dense(25, input_shape=(10,), kernel_regularizer = regularizers.l2(0.01)),
   Activation('relu'),
-  Dense(10),
+  Dense(15, kernel_regularizer = regularizers.l2(0.01)),
   Activation('relu'),
-  Dense(1),
+  Dense(10, kernel_regularizer = regularizers.l2(0.01)),
+  Activation('relu'),
+  Dense(1, kernel_regularizer = regularizers.l2(0.01)),
 ])
 #model.compile(optimizer='rmsprop',
 #              loss='categorical_crossentropy',
 #              metrics=['accuracy'])
-model.compile(optimizer='rmsprop',
-              loss='mse')
+model.compile(optimizer = 'adam',
+              loss = 'mse')#losses.mean_absolute_error)
 
 #X[:, :2] = 0
 #%%
 
-model.fit(X, rewards, epochs = 1000)
+model.fit(X, rewards, epochs = 10000, batch_size = 10000)
 
 #%%
 

@@ -5,8 +5,8 @@ import time
 import json
 import keras
 
-cx = 325
-cy = 237
+cx = 320
+cy = 240
 r = 50
 
 class Ai(replayer.Ai):
@@ -23,12 +23,16 @@ class Ai(replayer.Ai):
             action = self.replay()
             return action 
 
-        if time.time() - self.lastAction > 0.5 and state is not None:
+        if time.time() - self.lastAction > 0.5 and \
+           state is not None and \
+           (state['x'] != 0 and state['y']):
+            xv = state['x']
+            yv = state['y']
             rewards = []
             for i in range(8):
                 x = numpy.zeros((1, 10))
-                x[0, 0] = state['x'] - 4863
-                x[0, 1] = state['y'] - 5653
+                x[0, 0] = xv - 4863
+                x[0, 1] = yv - 5653
                 x[0, 2 + i] = 1
                 rewards.append(self.model.predict(x)[0, 0])
 
@@ -37,6 +41,7 @@ class Ai(replayer.Ai):
             angleI = random.randint(0, len(angles) - 1) if random.random() < self.mix else numpy.argmax(rewards)
             
             print rewards
+            print state['x'] - 4863, state['y'] - 5653
 
             x = cx + numpy.cos(angles[angleI]) * 50
             y = cy - numpy.sin(angles[angleI]) * 50 # Coordinate system is backwards
