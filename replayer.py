@@ -1,20 +1,24 @@
+import os
 import random
 import time
 import json
 import pygame
+import tempfile
+import skimage.io
+import recorder
 
-class Ai(object):
+class Ai(recorder.Ai):
     def __init__(self, logFileName, replayFileName):
+        super(Ai, self).__init__(logFileName, None)
+        
         self.first = True
         
-        self.logFileName = logFileName
         if replayFileName is not None:
             self.replayFile = open(replayFileName)
             self.replaying = True
         else:
             self.replaying = False
 
-        open(self.logFileName, "w").close()
         return
 
     def handle(self, e, state):
@@ -27,7 +31,7 @@ class Ai(object):
     def replay(self):
         if self.first:
             self.replayLine = json.loads(self.replayFile.readline())
-            t, (click, x, y) = self.replayLine 
+            t, action, (click, x, y) = self.replayLine 
             self.replay_offset = time.time() - t
 
         if self.replayLine == None:
@@ -38,7 +42,7 @@ class Ai(object):
             else:
                 self.replayLine = json.loads(line)
 
-        t, (click, x, y) = self.replayLine
+        t, action, (click, x, y) = self.replayLine
         if time.time() > self.replay_offset + t:
             action = (click, x, y)
             self.replayLine = None
@@ -57,7 +61,3 @@ class Ai(object):
 
         self.first = False
         return (0, 0, 0)
-
-    def logAction(self, state, action):
-        with open(self.logFileName, "a") as f:
-            f.write(json.dumps((time.time(), state, action)) + "\n")
