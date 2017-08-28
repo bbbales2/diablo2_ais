@@ -5,9 +5,9 @@ import time
 import json
 import keras
 
-cx = 315
-cy = 240
-r = 50
+cx = 325
+cy = 245
+r = 40
 
 class Ai(replayer.Ai):
     def __init__(self, logFileName, dataFile):
@@ -37,18 +37,27 @@ class Ai(replayer.Ai):
                 yv = state['y']
                 rewards = []
                 for i in range(8):
-                    x = numpy.zeros((1, 10))
-                    x[0, 0] = xv - 4863
-                    x[0, 1] = yv - 5653
-                    x[0, 2 + i] = 1
-                    rewards.append(self.model.predict([state['screen'], x])[0, 0])
-                angleI = numpy.argmax(rewards)
+                    x = numpy.zeros((1, 8))
+                    x[0, i] = 1
+                    rewards.append(self.model.predict([state['screen'].reshape((1, 400, 640, 3))[:, 120:300, 240:400, :], x])[0, 0])
+
+                rewards = numpy.array(rewards)
+
+                if max(rewards) > 1.0:
+                    angleI = numpy.argmax(rewards)
+                    print "Picking!"
+                else:
+                    angleI = numpy.random.randint(0, 8 - 1)
+
+                #print ' '.join('{0:.2f}'.format(x) for x in rewards - min(rewards))
+                #print ' '.join('{0:.2f}'.format(x) for x in p)
+                #print angleI, angles[angleI]
             else:
                 angleI = random.randint(0, len(angles) - 1)
-            
-            x = cx + numpy.cos(angles[angleI]) * 50
-            y = cy - numpy.sin(angles[angleI]) * 50 # Coordinate system is backwards
-            
+
+            x = cx + numpy.cos(numpy.pi * angles[angleI] / 180.0) * r
+            y = cy - numpy.sin(numpy.pi * angles[angleI] / 180.0) * r # Coordinate system is backwards
+
             action = (1, x, y)
             self.lastAction = time.time()
 
