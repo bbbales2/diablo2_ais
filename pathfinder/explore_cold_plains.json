@@ -1,0 +1,5 @@
+{
+    "replayFile" : "../diablo2_ais/replays/cold_plains.log",
+    "kerasModel" : null,
+    "mix" : 1.0
+}
