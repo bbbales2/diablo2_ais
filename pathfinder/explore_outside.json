@@ -1,5 +1,5 @@
 {
     "replayFile" : "../diablo2_ais/replays/go_outside_camp.log",
-    "kerasModel" : null,
-    "mix" : 1.0
+    "kerasModel" : "../komodo/viz2.keras",
+    "mix" : 0.2
 }

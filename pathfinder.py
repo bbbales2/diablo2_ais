@@ -9,6 +9,10 @@ cx = 325
 cy = 245
 r = 40
 
+def softmax(v):
+    p = numpy.exp(v - v.min())
+    return p / sum(p)
+
 class Ai(replayer.Ai):
     def __init__(self, logFileName, dataFile):
         with open(dataFile, 'r') as f:
@@ -27,7 +31,7 @@ class Ai(replayer.Ai):
             action = self.replay()
             return action 
 
-        if time.time() - self.lastAction > 0.5 and \
+        if time.time() - self.lastAction > 1.0 and \
            state is not None and \
            (state['x'] != 0 and state['y']):
             angles = [0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0]
@@ -39,17 +43,21 @@ class Ai(replayer.Ai):
                 for i in range(8):
                     x = numpy.zeros((1, 8))
                     x[0, i] = 1
-                    rewards.append(self.model.predict([state['screen'].reshape((1, 400, 640, 3))[:, 120:300, 240:400, :], x])[0, 0])
+                    rewards.append(self.model.predict([state['screen'].reshape((1, 400, 640, 3))[:, 80:340, 190:450, :], x])[0, 0])
 
                 rewards = numpy.array(rewards)
 
-                if max(rewards) > 1.0:
-                    angleI = numpy.argmax(rewards)
-                    print "Picking!"
-                else:
-                    angleI = numpy.random.randint(0, 8 - 1)
+                p = softmax(rewards)
+                angleI = numpy.random.choice(range(8), p = p)
+                
+                #print rewards
+                #if max(rewards) > 1.0:
+                #angleI = numpy.argmax(rewards)
+                #    print "Picking!"
+                #else:
+                #    angleI = numpy.random.randint(0, 8 - 1)
 
-                #print ' '.join('{0:.2f}'.format(x) for x in rewards - min(rewards))
+                #print ' '.join('{0:3.1f}'.format(x) for x in rewards)
                 #print ' '.join('{0:.2f}'.format(x) for x in p)
                 #print angleI, angles[angleI]
             else:

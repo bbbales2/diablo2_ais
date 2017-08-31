@@ -1,5 +1,5 @@
 {
     "replayFile" : "../diablo2_ais/replays/cold_plains.log",
-    "kerasModel" : null,
-    "mix" : 1.0
+    "kerasModel" : "/home/bbales2/komodo/cold_plains_2.keras",
+    "mix" : 0.2
 }
