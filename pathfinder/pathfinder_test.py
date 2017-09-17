@@ -88,7 +88,7 @@ model.fit(X, rewards, epochs = 10000, batch_size = 10000)
 
 #%%
 
-plt.plot(model.predict(X), rewards, '*')
+numpyplt.plot(model.predict(X), rewards, '*')
 plt.plot(rewards, rewards, 'r-')
 plt.axes().set_aspect('equal', 'datalim')
 
