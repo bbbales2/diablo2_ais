@@ -24,8 +24,16 @@ class Ai(replayer.Ai):
             self.model = None
         self.mix = dataFile['mix']
 
+        if "saveLayer" in dataFile and self.model:
+            self.saveLayer = keras.models.Model(inputs = self.model.input,
+                                                outputs = self.model.layers[dataFile["saveLayer"]].output)
+        else:
+            self.saveLayer = None
+
         self.color = (255, 0, 0)
         self.direction = numpy.random.randint(0, 7)
+        self.lastMoved = 0.0
+        self.lastClicked = 0.0
         self.lastChangedDirection = 0.0
         self.lastPosition = numpy.array([0.0, 0.0])
         self.lastAction = time.time()
@@ -42,7 +50,13 @@ class Ai(replayer.Ai):
             angles = [0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0]
             position = numpy.array([state['x'], state['y']])
 
-            if (time.time() - self.lastChangedDirection) > 15.0:
+            if state['lastUnitClicked']:
+                self.lastClicked = time.time()
+            
+            if numpy.linalg.norm(position - self.lastPosition) != 0:
+                self.lastMoved = time.time()
+
+            if (time.time() - self.lastChangedDirection) > 15.0 or ((time.time() - self.lastMoved) > 2.0 and (time.time() - self.lastClicked) > 2.0):
                 self.direction = numpy.random.randint(0, 7)
                 self.lastChangedDirection = time.time()
 
@@ -61,7 +75,7 @@ class Ai(replayer.Ai):
                 #angleI = numpy.random.choice(range(8), p = p)
                 
                 #print rewards
-                if max(rewards) > 0.25:
+                if max(rewards) > 1.5:
                     angleI = numpy.argmax(rewards)
                     self.color = (0, 255, 0)
                     print "Picking!"
@@ -69,21 +83,33 @@ class Ai(replayer.Ai):
                     angleI = self.direction
                     self.color = (255, 0, 0)
 
+                if numpy.random.random() < 0.05:
+                    button = 2
+                elif numpy.random.random < 0.025:
+                    button = 49
+                else:
+                    button = 1
+
                 print ' '.join('{0:3.1f}'.format(x) for x in rewards)
                 #print ' '.join('{0:.2f}'.format(x) for x in p)
                 #print angleI, angles[angleI]
             else:
                 angleI = self.direction
+                button = 1
 
             x = cx + numpy.cos(numpy.pi * angles[angleI] / 180.0) * r
             y = cy - numpy.sin(numpy.pi * angles[angleI] / 180.0) * r # Coordinate system is backwards
 
             self.lastPosition = position
 
-            action = (1, x, y)
+            action = (button, x, y)
             self.lastAction = time.time()
 
-            self.logAction(state, angleI)
+            if self.saveLayer:
+                x = numpy.zeros((1, 8))
+                state['layer'] = self.saveLayer.predict([state['screen'].reshape((1, 400, 640, 3))[:, :, :, :], x]).flatten().tolist()
+                del state['screen']
+            self.logAction(state, (button, angleI))
         else:
             action = (0, 0, 0)
 
@@ -91,3 +117,4 @@ class Ai(replayer.Ai):
             
         self.first = False
         return action
+    
