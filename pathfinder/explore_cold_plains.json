@@ -1,6 +1,6 @@
 {
     "replayFile" : "../diablo2_ais/replays/cold_plains.log",
-    "kerasModel" : "/home/bbales2/komodo/diablo2_training/cold_plains_discounted_data_rewards_discounted.keras",
+    "kerasModel" : "/home/bbales2/komodo/diablo2_training/cold_plains_discounted_data_rewards.keras",
     "mix" : 0.0,
     "saveLayer" : 10
 }

@@ -85,7 +85,7 @@ class Ai(replayer.Ai):
 
                 if numpy.random.random() < 0.05:
                     button = 2
-                elif numpy.random.random < 0.025:
+                elif numpy.random.random() < 0.05:
                     button = 49
                 else:
                     button = 1
